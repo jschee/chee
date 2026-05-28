@@ -1,0 +1,16 @@
+development:
+  adapter: postgresql
+  database: chee_development
+  host: localhost
+  pool: <%= ENV.fetch("APP_MAX_THREADS", 5) %>
+
+test:
+  adapter: postgresql
+  database: chee_test
+  host: localhost
+  pool: <%= ENV.fetch("APP_MAX_THREADS", 5) %>
+
+production:
+  adapter: postgresql
+  url: <%= ENV.fetch("DATABASE_URL") %>
+  pool: <%= ENV.fetch("APP_MAX_THREADS", 5) %>

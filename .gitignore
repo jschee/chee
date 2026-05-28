@@ -1,0 +1,12 @@
+/.bundle
+/vendor/bundle
+/.env*
+/log
+/tmp
+/db/structure.sql
+/nows/*
+/pages/*
+/articles/*
+.kamal/secrets
+.kamal/secrets.*
+/config/deploy.yml

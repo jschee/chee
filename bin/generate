@@ -1,0 +1,204 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "fileutils"
+require "time"
+
+class Generator
+  TYPE_MAP = {
+    "string" => "string",
+    "text" => "text",
+    "integer" => "integer",
+    "bigint" => "bigint",
+    "boolean" => "boolean",
+    "date" => "date",
+    "datetime" => "datetime",
+    "decimal" => "decimal",
+    "float" => "float",
+    "uuid" => "uuid",
+    "jsonb" => "jsonb"
+  }.freeze
+
+  def self.call(args)
+    new(args).call
+  end
+
+  def initialize(args)
+    @args = args
+  end
+
+  def call
+    command = @args.shift
+
+    case command
+    when "model"
+      generate_model
+    else
+      abort usage
+    end
+  end
+
+  private
+
+  def generate_model
+    model_name = @args.shift
+    abort usage unless model_name
+
+    attributes = parse_attributes(@args)
+
+    create_migration(model_name, attributes)
+    create_model(model_name)
+
+    puts
+    puts "Generated #{class_name(model_name)}"
+    puts "Next:"
+    puts "  bundle exec rake db:migrate"
+  end
+
+  def parse_attributes(attributes)
+    attributes.map do |attribute|
+      name, type = attribute.split(":", 2)
+
+      abort "Invalid attribute: #{attribute}. Use name:type." unless name && type
+      abort "Unsupported type: #{type}" unless TYPE_MAP.key?(type)
+
+      [name, TYPE_MAP.fetch(type)]
+    end
+  end
+
+  def create_migration(model_name, attributes)
+    FileUtils.mkdir_p("db/migrate")
+
+    table_name = pluralize(snake_case(model_name))
+    migration_name = "create_#{table_name}"
+    version = next_migration_version
+    path = "db/migrate/#{version}_#{migration_name}.rb"
+
+    if File.exist?(path)
+      abort "Migration already exists: #{path}"
+    end
+
+    File.write(path, migration_template(model_name, table_name, attributes))
+
+    puts "created #{path}"
+  end
+
+  def create_model(model_name)
+    FileUtils.mkdir_p("models")
+
+    path = "models/#{snake_case(model_name)}.rb"
+
+    if File.exist?(path)
+      puts "exists  #{path}"
+      return
+    end
+
+    File.write(path, model_template(model_name))
+
+    puts "created #{path}"
+  end
+
+  def migration_template(model_name, table_name, attributes)
+    columns = attributes.map do |name, type|
+      "      t.#{type} :#{name}"
+    end.join("\n")
+
+    indexes = attributes
+      .select { |name, _type| name == "slug" }
+      .map { |name, _type| "    add_index :#{table_name}, :#{name}, unique: true" }
+      .join("\n")
+
+    <<~RUBY
+      # frozen_string_literal: true
+
+      class Create#{class_name(pluralize(model_name))} < ActiveRecord::Migration[8.0]
+        def change
+          create_table :#{table_name}, id: :uuid do |t|
+      #{columns}
+            t.timestamps
+          end
+
+      #{indexes}
+        end
+      end
+    RUBY
+  end
+
+  def model_template(model_name)
+    <<~RUBY
+      # frozen_string_literal: true
+
+      require "active_record"
+
+      class #{class_name(model_name)} < ActiveRecord::Base
+      end
+    RUBY
+  end
+
+  def snake_case(value)
+    value
+      .gsub("::", "/")
+      .gsub(/([A-Z]+)([A-Z][a-z])/, "\\1_\\2")
+      .gsub(/([a-z\d])([A-Z])/, "\\1_\\2")
+      .tr("-", "_")
+      .downcase
+  end
+
+  def class_name(value)
+    singularize(value)
+      .split("_")
+      .map(&:capitalize)
+      .join
+  end
+
+  def pluralize(value)
+    value = snake_case(value)
+
+    return value if value.end_with?("s")
+    return value.sub(/y\z/, "ies") if value.end_with?("y")
+
+    "#{value}s"
+  end
+
+  def singularize(value)
+    value = snake_case(value)
+
+    return value.sub(/ies\z/, "y") if value.end_with?("ies")
+    return value.sub(/s\z/, "") if value.end_with?("s")
+
+    value
+  end
+
+  def next_migration_version
+    FileUtils.mkdir_p("db/migrate")
+
+    versions = Dir.glob("db/migrate/*.rb").filter_map do |path|
+      basename = File.basename(path)
+      match = basename.match(/\A(?<version>\d{12})_/)
+      match[:version] if match
+    end
+
+    latest = versions.max
+
+    return "#{Time.now.utc.strftime("%Y%m%d")}0001" unless latest
+
+    date_part = latest[0, 8]
+    sequence = latest[8, 4].to_i
+
+    next_sequence = sequence + 1
+
+    "#{date_part}#{next_sequence.to_s.rjust(4, "0")}"
+  end
+
+  def usage
+    <<~TEXT
+      Usage:
+        bin/generate model Project title:string slug:string description:text published:boolean published_on:date
+
+      Supported types:
+        #{TYPE_MAP.keys.join(", ")}
+    TEXT
+  end
+end
+
+Generator.call(ARGV)
