@@ -25,16 +25,19 @@ class CreateNow
     validate_file!
 
     date = parsed_filename.fetch(:date)
-    slug = [parsed_filename.fetch(:date), parsed_filename.fetch(:slug)].join("-")
+    filename_slug = parsed_filename.fetch(:slug)
+    slug = [date, filename_slug].join("-")
+
     frontmatter, markdown_body = parse_frontmatter(file_body)
-    title = frontmatter.fetch("title") { title_from_slug(slug) }
+
+    title = frontmatter.fetch("title") { title_from_slug(filename_slug) }
     published = frontmatter.fetch("published", true)
-    html_body = render_markdown(markdown_body)
     template_key = frontmatter.fetch("template", "now")
+    html_body = render_markdown(markdown_body)
 
     now = Now.find_or_initialize_by(slug: slug)
+
     now.assign_attributes(
-      slug: slug,
       title: title,
       template_key: template_key,
       format: "markdown",
@@ -42,15 +45,14 @@ class CreateNow
       html_body: html_body,
       published: published,
       published_on: date,
-      source_path: relative_source_path,
-      created_at: Time.now,
-      updated_at: Time.now  
+      source_path: relative_source_path
     )
+
     now.save!
 
     puts "Now saved: #{now.title}"
     puts "Slug: #{now.slug}"
-    puts "URL: /nows/#{now.slug}"
+    puts "URL: /now"
   ensure
     ActiveRecord::Base.connection_handler.clear_active_connections!
   end
