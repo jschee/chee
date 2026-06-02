@@ -17,6 +17,6 @@ ERB
 
 xml_body = ERB.new(xml).result(binding)
 
-File.write('sitemap.xml', xml_body)
+File.write('public/sitemap.xml', xml_body)
 
 puts "sitemap has been generated successfully."
