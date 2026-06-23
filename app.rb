@@ -18,8 +18,6 @@ class App < Sinatra::Base
   # def self.setup_host_authorization(*)
   #   self
   # end
-# 
-#
 
   configure do
     set :root, File.dirname(__FILE__)
@@ -57,7 +55,6 @@ class App < Sinatra::Base
 
   get "/p" do
     markdown_path = File.join(settings.views, "preview/show.md")
-
     @content = render_markdown(File.read(markdown_path))
 
     erb :"preview/show", layout: :"layouts/application"

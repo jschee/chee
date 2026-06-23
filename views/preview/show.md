@@ -1,32 +1,29 @@
-<h3>What I use for my personal website</h3>
+*06/23/2026*
 
-*Last updated 05/28/2026*
+I don't journal, but I probably should. The fear is that one day I will wake up asking myself what have I done, or what do I remember for the last X days, months years? I am missing the artifacts of my life. This idea has been rummaging back and forth in my mind while at work. I often deliver mail in silence like a coo-coo.
 
-To become more tech independent, I am hosting my own websites and web applications on my own server. This migration has helped me better understand deployment, servers, databases, caching, and how the web works beyond just writing application code. I also moved away from static site generators and strung together my very own omakase.
+To prevent this foreseeable existential crisis, a daily log could help. Even if its not daily because I know myself...At least there is something that I have and it'll be on record to show that I did XYZ on June 23, 2026. The goal is to spend no more than like 5 minutes on this. Of course this would all be private. The format could look something like this:
 
-What I use:
-- [postgresql](https://www.postgresql.org/) - stores content, templates, and render functions
-- [sinatra](https://sinatrarb.com/) - a small ruby DSL for handling web routes
-- [ruby](https://www.ruby-lang.org/en/) - scripts, imports, and application glue
-- [activerecord](https://github.com/rails/rails/tree/v8.1.3/activerecord) - database migrations and ruby object mapping
-- [mustache](https://mustache.github.io/) - template placeholders
-- [redcarpet](https://github.com/vmg/redcarpet) - converts markdown into HTML
-- [kamal 2](https://kamal-deploy.org/) - deploys the app as containers
-- [hetzner](https://www.hetzner.com/cloud/) - vps hosting
-- [bunny](https://bunny.net/) - cdn and media storage
+### June 23, 2026
 
-The publishing workflow:
+### Things I did today
 
-I write a page, article, or now in markdown and preview it locally on the site.
-⇣
-I run a ruby script that reads the file, parses the frontmatter, converts the markdown to HTML, and saves it to postgresql.
-⇣
-The page record points to a template key, such as page, article, or now.
-⇣
-When someone visits the url, sinatra calls a postgresql function.
-⇣
-Postgresql maps the resource via slug, combines the saved content with the matching template and returns a HTML response.
-⇣
-Sinatra sends that HTML response to the browser for your viewing pleasure 😊.
+- Completed a full day of work
+- Made dinner with my wife
+- Went for an hour walk after dinner. Sun was still out at 8pm
+- Applied to a job
+- Spent 30 minutes reading a book
+- Called mom. Had a conversation about blah blah blah
 
-Feel free to reach out if you have any questions, opinions, or interest.
+### Something I learned today
+
+- A random thing I learned from a podcast, book, or overheard through conversation
+- A link to some web content
+
+### Media
+
+*include some photo, or video I took that day*
+
+### Thoughts
+
+long form writing about random things, musings, and chaos.
